@@ -1,0 +1,65 @@
+server:
+  port: 8080
+  error:
+    include-stacktrace: never
+
+spring:
+  config:
+    import: optional:file:.env[.properties]
+
+  application:
+    name: solution
+
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost:5432}/${POSTGRES_DB}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+    driverClassName: org.postgresql.Driver
+
+  data:
+    jdbc:
+      repositories:
+        enabled: true
+
+  sql:
+    init:
+      mode: always
+
+  jackson:
+    default-property-inclusion: NON_NULL
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+
+logging:
+  level:
+    root: info
+
+minio:
+  url: http://${MINIO_HOST:localhost:9000}
+  accessKey: ${MINIO_ROOT_USER}
+  secretKey: ${MINIO_ROOT_PASSWORD}
+  bucket: ${MINIO_BUCKET:user-images}
+
+google:
+  perspective:
+    api:
+      key: ${GOOGLE_PERSPECTIVE_API_KEY}
+      toxicity_threshold: ${GOOGLE_PERSPECTIVE_TOXICITY_THRESHOLD:0.7}
+
+groq:
+  api:
+    key: ${GROQ_API_KEY}
+
+telegram:
+  bot:
+    token: ${TELEGRAM_BOT_TOKEN}
+
+proxy:
+  url: ${PROXY_URL}
+  username: ${PROXY_LOGIN}
+  password: ${PROXY_PASSWORD}

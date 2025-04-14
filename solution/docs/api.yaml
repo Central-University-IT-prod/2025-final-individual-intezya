@@ -1,0 +1,1068 @@
+openapi: 3.1.0
+info:
+  title: Advertisement Service
+  description: PROD Advertisement Serviice API
+  version: v1.0
+servers:
+  - url: http://localhost:8080
+    description: Generated server url
+tags:
+  - name: Campaigns
+    description: "Управление рекламными кампаниями: создание, обновление, удаление и\
+    \ получение списка кампаний."
+  - name: Ads
+    description: Показ рекламных объявлений клиентам и фиксация кликов.
+  - name: Statistics
+    description: "Получение статистики по кампаниям и рекламодателям, а также ежедне\
+    вной статистики."
+  - name: Utils
+    description: Различные утилиты для управления внутренними состояниями
+  - name: Clients
+    description: "Управление клиентами: создание и обновление информации о клиентах."
+  - name: Advertisers
+    description: Управление рекламодателями и ML скорами для определения релевантности.
+paths:
+  /advertisers/{advertiserId}/campaigns/{advertisementId}:
+    get:
+      tags:
+        - Campaigns
+      summary: Получение кампании по ID
+      description: Создаёт новую рекламную кампанию для указанного рекламодателя.
+      operationId: getById
+      parameters:
+        - name: advertiserId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: advertisementId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Кампания успешно получена.
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/AdvertisementView"
+        "403":
+          description: Кампания вам не принадлежит!
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/AdvertisementView"
+        "404":
+          description: Кампания не найдена.
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/AdvertisementView"
+    put:
+      tags:
+        - Campaigns
+      summary: Обновление рекламной кампании
+      description: Обновляет разрешённые параметры рекламной кампании до её старта.
+      operationId: updateById
+      parameters:
+        - name: advertiserId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: advertisementId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdvertisementEditRequest"
+        required: true
+      responses:
+        "200":
+          description: Рекламная кампания успешно обновлена.
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/AdvertisementView"
+        "403":
+          description: Кампания вам не принадлежит!
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/AdvertisementView"
+        "404":
+          description: Кампания не найдена.
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/AdvertisementView"
+    delete:
+      tags:
+        - Campaigns
+      summary: Удаление рекламной кампании
+      description: Удаляет рекламную кампанию рекламодателя по заданному campaignId.
+      operationId: deleteById
+      parameters:
+        - name: advertiserId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: advertisementId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Рекламная кампания успешно удалена.
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/AdvertisementView"
+        "403":
+          description: Кампания вам не принадлежит!
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/AdvertisementView"
+        "404":
+          description: Кампания не найдена.
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/AdvertisementView"
+  /time/advance:
+    post:
+      tags:
+        - Utils
+      summary: Установка текущей даты
+      description: Устанавливает текущий день в системе в заданную дату.
+      operationId: setCurrentDate
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SetCurrentDate"
+        required: true
+      responses:
+        "200":
+          description: Текущая дата обновлена
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/SetCurrentDate"
+        "400":
+          description: Невалидные входные данные
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/SetCurrentDate"
+  /moderation:
+    post:
+      tags:
+        - Utils
+      summary: Управление модерацией
+      description: Включает/выключает модерацию.
+      operationId: setModerationState
+      parameters:
+        - name: enabled
+          in: query
+          required: true
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: Модерация включена/выключена
+          content:
+            '*/*':
+              schema:
+                type: boolean
+        "400":
+          description: Невалидные входные данные
+          content:
+            '*/*':
+              schema:
+                type: boolean
+  /moderation/banned_word:
+    post:
+      tags:
+        - Utils
+      summary: Добавление слова в список запрещенных
+      description: Добавляет слово в список запрещенных.
+      operationId: addBannedWord
+      parameters:
+        - name: word
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Слово добавлено в список запрещенных
+          content:
+            '*/*':
+              schema:
+                type: boolean
+        "400":
+          description: Невалидные входные данные
+          content:
+            '*/*':
+              schema:
+                type: boolean
+    delete:
+      tags:
+        - Utils
+      summary: Удаление слова из списка запрещенных
+      description: Удаляет слово из списка запрещенных.
+      operationId: removeBannedWord
+      parameters:
+        - name: word
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Слово удалено из списка запрещенных
+          content:
+            '*/*':
+              schema:
+                type: boolean
+        "400":
+          description: Невалидные входные данные
+          content:
+            '*/*':
+              schema:
+                type: boolean
+  /ml-scores:
+    post:
+      tags:
+        - Advertisers
+      summary: Добавление или обновление ML скора
+      description: Добавляет или обновляет ML скор для указанной пары клиент-рекламодатель.
+      operationId: create
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MLScoreRequest"
+        required: true
+      responses:
+        "200":
+          description: ML скор успешно добавлен или обновлён.
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/MLScoreRequest"
+        "400":
+          description: Невалидные входные данные
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/MLScoreRequest"
+        "404":
+          description: Рекламодатель/клиент не найден
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/MLScoreRequest"
+  /clients/bulk:
+    post:
+      tags:
+        - Clients
+      summary: Массовое создание/обновление клиентов
+      description: Создаёт новых или обновляет существующих клиентов
+      operationId: createOrUpdateClient
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/ClientRequest"
+        required: true
+      responses:
+        "201":
+          description: Успешное создание/обновление клиентов
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ClientRequest"
+        "400":
+          description: Невалидные входные данные
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ClientRequest"
+  /advertisers/{advertiserId}/campaigns:
+    get:
+      tags:
+        - Campaigns
+      summary: Получение рекламных кампаний рекламодателя c пагинацией
+      description: Возвращает список рекламных кампаний для указанного рекламодателя
+        с пагинацией.
+      operationId: getAllByAdvertiserId
+      parameters:
+        - name: advertiserId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 10
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int32
+            default: 0
+      responses:
+        "200":
+          description: Список рекламных кампаний рекламодателя.
+          content:
+            '*/*':
+              schema:
+                type: object
+        "204":
+          description: Список рекламных кампаний рекламодателя пуст.
+          content:
+            '*/*':
+              schema:
+                type: object
+        "404":
+          description: Рекламодатель не найден.
+          content:
+            '*/*':
+              schema:
+                type: object
+    post:
+      tags:
+        - Campaigns
+      summary: Создание рекламной кампании
+      description: Создаёт новую рекламную кампанию для указанного рекламодателя.
+      operationId: create_1
+      parameters:
+        - name: advertiserId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdvertisementCreateRequest"
+        required: true
+      responses:
+        "201":
+          description: Рекламная кампания успешно создана.
+          content:
+            '*/*':
+              schema:
+                type: object
+        "400":
+          description: Невалидные входные данные
+          content:
+            '*/*':
+              schema:
+                type: object
+  /advertisers/{advertiserId}/campaigns/generate:
+    post:
+      tags:
+        - Campaigns
+      summary: Сгенерировать описание
+      description: Генерирует описание по предоставленному заголовку.
+      operationId: generateDescription
+      parameters:
+        - name: title
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Текст сгенерирован
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ResultResponseString"
+        "503":
+          description: Сервис недоступен :(
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ResultResponseString"
+  /advertisers/bulk:
+    post:
+      tags:
+        - Advertisers
+      summary: Массовое создание/обновление рекламодателей
+      description: Создаёт новых или обновляет существующих рекламодателей
+      operationId: createOrUpdateAdvertisers
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/AdvertiserRequest"
+        required: true
+      responses:
+        "201":
+          description: Успешное создание/обновление рекламодателей
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdvertiserRequest"
+        "400":
+          description: Невалидные входные данные
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AdvertiserRequest"
+  /ads/{advertisementId}/click:
+    post:
+      tags:
+        - Ads
+      summary: Фиксация перехода по рекламному объявлению
+      description: Фиксирует клик (переход) клиента по рекламному объявлению.
+      operationId: clickAd
+      parameters:
+        - name: advertisementId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClientIdRequest"
+        required: true
+      responses:
+        "204":
+          description: Переход по рекламному объявлению успешно зафиксирован.
+          content:
+            '*/*':
+              schema:
+                type: object
+        "400":
+          description: Невалидные входные данные
+          content:
+            '*/*':
+              schema:
+                type: object
+        "403":
+          description: Реклама ещё не просмотрена!
+          content:
+            '*/*':
+              schema:
+                type: object
+        "404":
+          description: Реклама не найдена
+          content:
+            '*/*':
+              schema:
+                type: object
+  /stats/campaigns/{advertisementId}:
+    get:
+      tags:
+        - Statistics
+      summary: Получение статистики по рекламной кампании
+      description: "\n\t\tВозвращает агрегированную статистику (показы, переходы,\
+        \ затраты и конверсию) для заданной рекламной кампании.\n\t\t"
+      operationId: advertisementStatistic
+      parameters:
+        - name: advertisementId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Статистика по рекламной кампании успешно получена.
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Statistic"
+        "400":
+          description: Невалидные входные данные
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Statistic"
+  /stats/campaigns/{advertisementId}/daily:
+    get:
+      tags:
+        - Statistics
+      summary: Получение ежедневной статистики по рекламной кампании
+      description: Возвращает массив ежедневной статистики для указанной рекламной
+        кампании.
+      operationId: advertisementDailyStatistic
+      parameters:
+        - name: advertisementId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Ежедневная статистика по рекламной кампании успешно получена.
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DailyStatistic"
+        "400":
+          description: Невалидные входные данные
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DailyStatistic"
+  /stats/advertisers/{advertiserId}/campaigns:
+    get:
+      tags:
+        - Statistics
+      summary: Получение агрегированной статистики по всем кампаниям рекламодателя
+      description: "\n\t\t\tВозвращает сводную статистику по всем рекламным кампан\
+        иям, принадлежащим заданному рекламодателю.\n\t\t"
+      operationId: advertiserStatistic
+      parameters:
+        - name: advertiserId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Агрегированная статистика по всем кампаниям рекламодателя успешно
+            получена.
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Statistic"
+        "400":
+          description: Невалидные входные данные
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/Statistic"
+  /stats/advertisers/{advertiserId}/campaigns/daily:
+    get:
+      tags:
+        - Statistics
+      summary: Получение ежедневной агрегированной статистики по всем кампаниям рекламодателя
+      description: "\n\t\t\tВозвращает массив ежедневной сводной статистики по все\
+        м рекламным кампаниям заданного рекламодателя.\n\t\t"
+      operationId: advertiserDailyStatistic
+      parameters:
+        - name: advertiserId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Ежедневная агрегированная статистика успешно получена.
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DailyStatistic"
+        "400":
+          description: Невалидные входные данные
+          content:
+            '*/*':
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DailyStatistic"
+  /clients/{id}:
+    get:
+      tags:
+        - Clients
+      summary: Получение клиента по ID
+      description: Возвращает информацию о клиенте по его ID.
+      operationId: getClientById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Информация о клиенте успешно получена.
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ClientRequest"
+        "400":
+          description: Невалидные входные данные
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ClientRequest"
+        "404":
+          description: Клиент не найден
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ClientRequest"
+  /advertisers/{advertiserId}:
+    get:
+      tags:
+        - Advertisers
+      summary: Получение рекламодателя по ID
+      description: Возвращает информацию о рекламодателе по его ID.
+      operationId: getAdvertiserById
+      parameters:
+        - name: advertiserId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Информация о рекламодателе успешно получена.
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/AdvertiserRequest"
+        "400":
+          description: Невалидные входные данные
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/AdvertiserRequest"
+        "404":
+          description: Рекламодатель не найден
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/AdvertiserRequest"
+  /advertisers/{advertiserId}/campaigns/{advertisementId}/image:
+    get:
+      tags:
+        - Campaigns
+      summary: Получение картинки рекламной кампании
+      description: Возвращает картинку рекламной кампании в формате JPEG.
+      operationId: getImage
+      parameters:
+        - name: advertiserId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: advertisementId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Картинка успешно получена.
+          content:
+            image/jpeg: { }
+        "204":
+          description: Рекламная кампания не имеет картинки.
+          content:
+            '*/*':
+              schema:
+                type: string
+                format: byte
+        "404":
+          description: Рекламная кампания не найдена.
+          content:
+            '*/*':
+              schema:
+                type: string
+                format: byte
+  /ads:
+    get:
+      tags:
+        - Ads
+      summary: Получение рекламного объявления для клиента
+      description: "Возвращает рекламное объявление, подходящее для показа клиенту\
+        \ с учетом таргетинга и ML скора."
+      operationId: getAd
+      parameters:
+        - name: client_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Рекламное объявление успешно возвращено.
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/AdView"
+        "400":
+          description: Невалидные входные данные
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/AdView"
+        "404":
+          description: Подходящая реклама не найдена
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/AdView"
+components:
+  schemas:
+    AdvertisementEditRequest:
+      type: object
+      properties:
+        impressions_limit:
+          type: integer
+          format: int32
+          minimum: 1
+        clicks_limit:
+          type: integer
+          format: int32
+          minimum: 0
+        cost_per_impression:
+          type: number
+          format: double
+          minimum: 0
+        cost_per_click:
+          type: number
+          format: double
+          minimum: 0
+        ad_title:
+          type: string
+        ad_text:
+          type: string
+        start_date:
+          type: integer
+          format: int32
+          minimum: 0
+        end_date:
+          type: integer
+          format: int32
+          minimum: 0
+        targeting:
+          $ref: "#/components/schemas/Targeting"
+      required:
+        - ad_text
+        - ad_title
+        - clicks_limit
+        - cost_per_click
+        - cost_per_impression
+        - end_date
+        - impressions_limit
+        - start_date
+    Targeting:
+      type: object
+      properties:
+        gender:
+          type: string
+          enum:
+            - MALE
+            - FEMALE
+            - ALL
+        age_from:
+          type: integer
+          format: int32
+          minimum: 0
+        age_to:
+          type: integer
+          format: int32
+          minimum: 0
+        location:
+          type: string
+    AdvertisementView:
+      type: object
+      properties:
+        campaign_id:
+          type: string
+          format: uuid
+        advertiser_id:
+          type: string
+          format: uuid
+        impressions_limit:
+          type: integer
+          format: int32
+        clicks_limit:
+          type: integer
+          format: int32
+        cost_per_impression:
+          type: number
+          format: double
+        cost_per_click:
+          type: number
+          format: double
+        ad_title:
+          type: string
+        ad_text:
+          type: string
+        start_date:
+          type: integer
+          format: int32
+        end_date:
+          type: integer
+          format: int32
+        targeting:
+          $ref: "#/components/schemas/Targeting"
+        image_url:
+          type: string
+      required:
+        - ad_text
+        - ad_title
+        - advertiser_id
+        - campaign_id
+        - clicks_limit
+        - cost_per_click
+        - cost_per_impression
+        - end_date
+        - impressions_limit
+        - start_date
+        - targeting
+    SetCurrentDate:
+      type: object
+      properties:
+        current_date:
+          type: integer
+          format: int32
+          minimum: 0
+      required:
+        - current_date
+    MLScoreRequest:
+      type: object
+      properties:
+        client_id:
+          type: string
+          format: uuid
+        advertiser_id:
+          type: string
+          format: uuid
+        score:
+          type: integer
+          format: int32
+          minimum: 0
+      required:
+        - advertiser_id
+        - client_id
+        - score
+    ClientRequest:
+      type: object
+      properties:
+        client_id:
+          type: string
+          format: uuid
+        login:
+          type: string
+        age:
+          type: integer
+          format: int32
+          maximum: 130
+          minimum: 0
+        location:
+          type: string
+        gender:
+          type: string
+          enum:
+            - MALE
+            - FEMALE
+      required:
+        - age
+        - client_id
+        - gender
+        - location
+        - login
+    AdvertisementCreateRequest:
+      type: object
+      properties:
+        impressions_limit:
+          type: integer
+          format: int32
+          minimum: 1
+        clicks_limit:
+          type: integer
+          format: int32
+          minimum: 0
+        cost_per_impression:
+          type: number
+          format: double
+          minimum: 0
+        cost_per_click:
+          type: number
+          format: double
+          minimum: 0
+        ad_title:
+          type: string
+        ad_text:
+          type: string
+        start_date:
+          type: integer
+          format: int32
+          minimum: 0
+        end_date:
+          type: integer
+          format: int32
+          minimum: 0
+        targeting:
+          $ref: "#/components/schemas/Targeting"
+        image_url:
+          type: string
+      required:
+        - ad_text
+        - ad_title
+        - clicks_limit
+        - cost_per_click
+        - cost_per_impression
+        - end_date
+        - impressions_limit
+        - start_date
+        - targeting
+    ResultResponseString:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+        - message
+    AdvertiserRequest:
+      type: object
+      properties:
+        advertiser_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+      required:
+        - advertiser_id
+        - name
+    ClientIdRequest:
+      type: object
+      properties:
+        client_id:
+          type: string
+          format: uuid
+      required:
+        - client_id
+    Statistic:
+      type: object
+      properties:
+        impressions_count:
+          type: integer
+          format: int32
+        clicks_count:
+          type: integer
+          format: int32
+        conversion:
+          type: number
+          format: double
+        spent_impressions:
+          type: number
+          format: double
+        spent_clicks:
+          type: number
+          format: double
+        spent_total:
+          type: number
+          format: double
+      required:
+        - clicks_count
+        - conversion
+        - impressions_count
+        - spent_clicks
+        - spent_impressions
+        - spent_total
+    DailyStatistic:
+      type: object
+      properties:
+        impressions_count:
+          type: integer
+          format: int32
+        clicks_count:
+          type: integer
+          format: int32
+        conversion:
+          type: number
+          format: double
+        spent_impressions:
+          type: number
+          format: double
+        spent_clicks:
+          type: number
+          format: double
+        spent_total:
+          type: number
+          format: double
+        date:
+          type: integer
+          format: int32
+      required:
+        - clicks_count
+        - conversion
+        - date
+        - impressions_count
+        - spent_clicks
+        - spent_impressions
+        - spent_total
+    AdView:
+      type: object
+      properties:
+        ad_id:
+          type: string
+          format: uuid
+        advertiser_id:
+          type: string
+          format: uuid
+        ad_title:
+          type: string
+        ad_text:
+          type: string
+        image_url:
+          type: string
+      required:
+        - ad_id
+        - ad_text
+        - ad_title
+        - advertiser_id
